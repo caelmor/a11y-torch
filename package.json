@@ -1,0 +1,16 @@
+{
+  "name": "a11y-torch",
+  "version": "0.1.0",
+  "description": "An accessibility inspection bookmarklet.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --minify --format=iife --target=es2017 --outfile=dist/a11y-torch.min.js",
+    "dev": "esbuild src/index.js --bundle --format=iife --target=es2017 --sourcemap=inline --watch --outfile=dist/a11y-torch.min.js",
+    "make:install": "node scripts/make-install.mjs",
+    "purge": "node -e \"fetch('https://purge.jsdelivr.net/gh/USER/a11y-torch@main/dist/a11y-torch.min.js').then(r=>r.text()).then(console.log)\""
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
