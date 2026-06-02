@@ -1,16 +1,15 @@
 /**
  * a11y-torch — dev loader.
  *
- * Always fetches a FRESH bundle so you can iterate without re-dragging the
- * bookmark: tears down any existing instance, removes prior injected scripts,
- * and reloads from GitHub Pages with a cache-busting timestamp.
+ * Always fetches a FRESH bundle from the local dev server so you can iterate
+ * without re-dragging the bookmark: tears down any existing instance, removes
+ * prior injected scripts, and reloads with a cache-busting timestamp.
  *
- * Dev loop: edit src -> `npm run dev` (rebuild) -> commit & push -> click this.
+ * No edits needed. Requires `npm run dev` running, and you must click this on a
+ * page served from the same localhost origin (open the playground). Same-origin
+ * http -> http means no mixed-content or Private Network Access issues.
  *
- * EDIT BEFORE USE:
- *   - USER -> your GitHub username
- * Requires GitHub Pages enabled on the repo (Settings -> Pages -> main, root).
- * Then run `npm run make:install` to regenerate install.html.
+ * Run `npm run make:install` after editing to regenerate install.html.
  */
 (function () {
   const NS = '__a11yTorch';
@@ -22,17 +21,13 @@
   document.querySelectorAll('script[data-a11y-torch]').forEach(function (n) {
     n.remove();
   });
-
   try {
     delete window[NS];
   } catch (e) {
     window[NS] = undefined;
   }
-
   const s = document.createElement('script');
-  s.src = 'https://USER.github.io/a11y-torch/dist/a11y-torch.min.js?t=' + Date.now();
-  //              ^^^^  <- your GitHub username
-
+  s.src = 'http://localhost:8000/dist/a11y-torch.min.js?t=' + Date.now();
   s.setAttribute('data-a11y-torch', '');
   s.onload = function () {
     if (window[NS]) window[NS].open();

@@ -28,7 +28,10 @@ a11y-torch/
 ├── loader/
 │   ├── prod.js                        # toggle-if-loaded, else inject pinned jsDelivr bundle
 │   └── dev.js                         # always tears down + re-fetches fresh (cache-busted)
-├── scripts/make-install.mjs           # minifies loaders -> regenerates install.html
+├── scripts/
+│   ├── dev-server.mjs                 # local dev server (esbuild serve + watch)
+│   └── make-install.mjs               # minifies loaders -> regenerates install.html
+├── dev/playground.html                # local fixture page to test against
 ├── dist/a11y-torch.min.js             # built bundle (committed; this is what gets served)
 ├── install.html                       # drag-to-bookmarks page (generated -- do not edit by hand)
 └── package.json
@@ -48,12 +51,20 @@ a11y-torch/
    ```
 3. Commit and push. `dist/` is committed on purpose — it is what jsDelivr / GitHub Pages serve.
 
-## Hosting
+## Local development
 
-- **Production** loader serves the pinned bundle from jsDelivr (`@v0.1.0`, immutable, zero setup).
-- **Dev** loader serves from GitHub Pages (`Settings → Pages → main / root`) with a cache-busting query so you can iterate without re-dragging the bookmark.
+No hosting needed. The dev loader points at a local server.
 
-Dev loop: edit `src` → `npm run dev` (watch-rebuild) → commit & push → click the dev bookmark.
+1. `npm install`
+2. `npm run dev` — starts a server on `http://localhost:8000` that rebuilds the bundle on every request.
+3. Open `http://localhost:8000/dev/playground.html` (or any page served from this localhost origin).
+4. Click the **dev** bookmark from `install.html`. Edit `src`, save, click again — fresh code, no re-dragging, no push.
+
+The dev loader and the page share the same `http://localhost` origin, so there is no mixed-content or Private Network Access issue in any browser. Testing the bookmarklet on real external `https://` sites from a local http server is blocked by browsers — use the prod loader for that once it is hosted.
+
+## Hosting (prod, later)
+
+The **production** loader serves the pinned bundle from jsDelivr (`@v0.1.0`, immutable, zero setup). Replace the `USER`/tag placeholders in `loader/prod.js`, commit `dist/`, and the prod bookmark resolves.
 
 ## Install
 
@@ -64,6 +75,6 @@ Open `install.html`, show your bookmarks bar (`Ctrl+Shift+B` / `Cmd+Shift+B`), d
 | Command | Does |
 |---|---|
 | `npm run build` | Bundle + minify `src` → `dist/a11y-torch.min.js` |
-| `npm run dev` | Same, unminified, with `--watch` for iteration |
+| `npm run dev` | Start the local dev server (rebuild-on-request) on `:8000` |
 | `npm run make:install` | Regenerate `install.html` from `loader/*.js` |
 | `npm run purge` | Purge the jsDelivr cache for the `@main` bundle |
