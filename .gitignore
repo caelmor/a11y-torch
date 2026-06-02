@@ -1,0 +1,10 @@
+node_modules/
+*.log
+.DS_Store
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+
+# dist/ is intentionally committed — it is what jsDelivr / GitHub Pages serve.
