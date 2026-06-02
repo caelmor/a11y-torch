@@ -11,7 +11,7 @@
  */
 import * as esbuild from 'esbuild';
 
-const PORT = 8000;
+const PORT = 5174;
 
 const ctx = await esbuild.context({
   entryPoints: ['src/index.js'],

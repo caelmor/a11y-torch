@@ -27,7 +27,7 @@
     window[NS] = undefined;
   }
   const s = document.createElement('script');
-  s.src = 'http://localhost:8000/dist/a11y-torch.min.js?t=' + Date.now();
+  s.src = 'http://localhost:5174/dist/a11y-torch.min.js?t=' + Date.now();
   s.setAttribute('data-a11y-torch', '');
   s.onload = function () {
     if (window[NS]) window[NS].open();

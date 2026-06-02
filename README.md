@@ -1,4 +1,4 @@
-# a11y-torch
+# a11y-torch 🔦
 
 An accessibility inspection bookmarklet. Click it on any page to view that page through a set of toggleable lenses — responsive viewport, focus location, landmark structure, and image accessible names. Built as a fast manual-audit aid to use alongside automated tools like axe-core, WAVE, and Lighthouse.
 
@@ -57,8 +57,8 @@ a11y-torch/
 No hosting needed. The dev loader points at a local server.
 
 1. `npm install`
-2. `npm run dev` — starts a server on `http://localhost:8000` that rebuilds the bundle on every request.
-3. Open `http://localhost:8000/dev/playground.html` (or any page served from this localhost origin).
+2. `npm run dev` — starts a server on `http://localhost:5174` that rebuilds the bundle on every request.
+3. Open `http://localhost:5174/dev/playground.html` (or any page served from this localhost origin).
 4. Click the **dev** bookmark from `install.html`. Edit `src`, save, click again — fresh code, no re-dragging, no push.
 
 The dev loader and the page share the same `http://localhost` origin, so there is no mixed-content or Private Network Access issue in any browser. Testing the bookmarklet on real external `https://` sites from a local http server is blocked by browsers.
