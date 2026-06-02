@@ -41,15 +41,16 @@ a11y-torch/
 
 1. Replace the placeholders:
    - `loader/prod.js` — `USER` → your GitHub username, `@v0.1.0` → the release tag to pin
-   - `loader/dev.js` — `USER` → your GitHub username
    - `package.json` (`purge` script) — `USER` → your GitHub username
+
+
 2. Build and generate the install page:
    ```bash
    npm install
    npm run build        # bundle src -> dist/a11y-torch.min.js
    npm run make:install # regenerate install.html from the loaders
    ```
-3. Commit and push. `dist/` is committed on purpose — it is what jsDelivr / GitHub Pages serve.
+3. Commit and push. `dist/` is committed on purpose. That is what JSDelivr serves.
 
 ## Local development
 
@@ -60,11 +61,7 @@ No hosting needed. The dev loader points at a local server.
 3. Open `http://localhost:8000/dev/playground.html` (or any page served from this localhost origin).
 4. Click the **dev** bookmark from `install.html`. Edit `src`, save, click again — fresh code, no re-dragging, no push.
 
-The dev loader and the page share the same `http://localhost` origin, so there is no mixed-content or Private Network Access issue in any browser. Testing the bookmarklet on real external `https://` sites from a local http server is blocked by browsers — use the prod loader for that once it is hosted.
-
-## Hosting (prod, later)
-
-The **production** loader serves the pinned bundle from jsDelivr (`@v0.1.0`, immutable, zero setup). Replace the `USER`/tag placeholders in `loader/prod.js`, commit `dist/`, and the prod bookmark resolves.
+The dev loader and the page share the same `http://localhost` origin, so there is no mixed-content or Private Network Access issue in any browser. Testing the bookmarklet on real external `https://` sites from a local http server is blocked by browsers.
 
 ## Install
 

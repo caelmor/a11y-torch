@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>a11y-torch — Dev Playground</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 70ch; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  header, nav, main, aside, footer, section, form { padding: 0.75rem; margin: 0.75rem 0; border: 1px dashed #bbb; }
+  img { width: 80px; height: 60px; vertical-align: middle; }
+  figure { display: inline-block; margin: 0.25rem; text-align: center; font-size: 0.7rem; }
+  @media (max-width: 480px) { body { font-size: 1.1rem; } }
+</style>
+</head>
+<body>
+<header>Site header (→ banner)</header>
+
+<nav aria-label="Primary">Primary navigation (→ navigation)</nav>
+
+<main>
+  <h1>Dev Playground</h1>
+  <p>A local fixture for testing a11y-torch. Run <code>npm run dev</code>, then click the dev bookmark on this page.</p>
+
+  <section aria-label="Named region">Named section (→ region)</section>
+  <section>Unnamed section (NOT a landmark — should be ignored by the highlighter)</section>
+
+  <form aria-label="Newsletter signup">
+    <label>Email <input type="email"></label>
+    <button type="submit">Sign up</button>
+  </form>
+  <form>
+    Unnamed form (NOT a landmark)
+    <button type="submit">Go</button>
+  </form>
+
+  <div role="search">role=search region</div>
+
+  <h2>Image cases (for feature #5)</h2>
+  <figure><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='60'><rect width='100%25' height='100%25' fill='%234fc3f7'/></svg>" alt="Blue square">good alt</figure>
+  <figure><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='60'><rect width='100%25' height='100%25' fill='%23888'/></svg>" alt="">empty alt (decorative)</figure>
+  <figure><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='60'><rect width='100%25' height='100%25' fill='%23e53935'/></svg>">no alt attr (error)</figure>
+  <figure><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='60'><rect width='100%25' height='100%25' fill='%23999'/></svg>" aria-hidden="true" alt="hidden">aria-hidden self</figure>
+  <figure aria-hidden="true"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='60'><rect width='100%25' height='100%25' fill='%23aaa'/></svg>" alt="ancestor hidden">aria-hidden ancestor</figure>
+  <figure><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='60'><rect width='100%25' height='100%25' fill='%234caf50'/></svg>" aria-label="Labeled via aria-label">aria-label</figure>
+
+  <p><a href="#">A focusable link</a> · <button>A focusable button</button></p>
+</main>
+
+<aside>Sidebar (→ complementary)</aside>
+
+<footer>Site footer (→ contentinfo)</footer>
+</body>
+</html>
