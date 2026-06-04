@@ -18,18 +18,6 @@ All viewport features run **inside the preview iframe** — the only context whe
 | **Orientation** (WCAG 1.3.4) | `↻ Portrait` / `↻ Landscape` | Swaps width/height of the active device preset. Disabled on Desktop (fluid) and Reflow (fixed). |
 | **Reflow** (WCAG 1.4.10) | `🔎 Reflow` (320 × 256) | 1280 × 1024 viewport at 400% zoom. Orientation is locked — the SC prescribes these dimensions. |
 
-**Reading the Reflow lens:** the iframe owns its own scrollbars, so a page that fails to reflow shows a **horizontal** scrollbar *inside* the 320px frame — that two-dimensional scroll is the 1.4.10 failure. A vertical scrollbar at 320px width is expected and allowed. The 256px-height dimension governs horizontal-scrolling content (e.g. vertical text). The tool surfaces the condition; the tester still applies the standard exceptions (images, maps, data tables, toolbars that must stay in view).
-
-The toolbar controls are real `<button>`s: the active size carries `aria-pressed`, and orientation uses a true `disabled` state rather than color alone.
-
-## Planned features
-
-The next three lenses paint on the **live host page**, not the iframe, so they need a control surface that isn't the full-screen preview overlay. **Step one of #5 is adding a small floating control panel** as the shared home for these inspection toggles.
-
-- **#5 Image accessible-name exposer** (WCAG 1.1.1) — expose each image's accessible name. `alt=""` or `aria-hidden` (on the image or any ancestor) → gray out; missing `alt` attribute entirely → red error.
-- **#4 Landmark highlighter** (APG Landmark Regions) — outline and label every landmark, native (`header`, `nav`, `main`, `aside`, `footer`, named `section`/`form`, `search`) and ARIA-role equivalents. Flag anti-patterns (duplicate banner/main/contentinfo, indistinguishable same-role regions).
-- **#3 Focus indicator overlay** (WCAG 2.4.7) — a tracked overlay that follows `document.activeElement` to reveal where focus sits, including on replaced elements where `::before`/`::after` can't render.
-
 ## How it works
 
 The bundle (`dist/a11y-torch.min.js`) is a **pure library**: it registers `window.__a11yTorch` (`open` / `close` / `toggle` / `destroy`) and opens nothing on its own. A small **loader bookmarklet is the controller** — the first click injects the bundle and opens it; later clicks toggle it without re-fetching. On load the bundle tears down any prior instance, so dev re-injection is clean.
@@ -54,19 +42,6 @@ a11y-torch/
 ├── install.html                       # drag-to-bookmarks page (generated -- do not edit by hand)
 └── package.json
 ```
-
-## Setup
-
-1. Replace the placeholders:
-   - `loader/prod.js` — `USER` → your GitHub username, `@v0.1.0` → the release tag to pin
-   - `package.json` (`purge` script) — `USER` → your GitHub username
-2. Build and generate the install page:
-   ```bash
-   npm install
-   npm run build        # bundle src -> dist/a11y-torch.min.js
-   npm run make:install # regenerate install.html from the loaders
-   ```
-3. Commit and push. `dist/` is committed on purpose — that is what jsDelivr serves.
 
 ## Local development
 
