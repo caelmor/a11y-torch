@@ -1,21 +1,23 @@
 /**
- * Responsive preview and orientation toggle.
+ * Responsive preview, Orientation (Feature #1) and Reflow (Feature #2).
  *
  * Loads the current page into a full-screen iframe overlay and renders it at a
  * chosen viewport size. This is the only context in which CSS media queries
  * respond to a simulated viewport, so all viewport features (orientation,
  * reflow) build on top of this.
  *
- * Orientation (WCAG 1.3.4) lives here, not in its own module, because it is a
- * pure transform of this overlay's own dimension state: it swaps the active
- * preset's width and height. Splitting it out would mean exposing that state
- * across a module boundary for no benefit. Reflow (#2) will be the same kind of
- * edit (a fixed 320x256 preset); the host-page inspection features (#3-#5) are
- * the ones that earn their own modules.
+ * Orientation (WCAG 1.3.4) and reflow (WCAG 1.4.10) both live here, not in
+ * their own modules, because each is a pure transform of this overlay's own
+ * dimension state — a width/height swap, and a fixed-dimension preset
+ * respectively. Splitting them out would mean exposing that state across a
+ * module boundary for no benefit. The host-page inspection features (#3-#5)
+ * are the ones that earn their own modules.
  *
  * Each non-desktop preset carries an explicit portrait width AND height;
- * landscape swaps them. Desktop is fluid (100%) and has no orientation, so the
- * orientation control is disabled there.
+ * landscape swaps them — except for `fixed` presets (Reflow), whose dimensions
+ * are prescribed by the success criterion and must not rotate. Desktop is fluid
+ * (100%) and has no orientation, so the orientation control is disabled there
+ * and on any fixed preset.
  */
 
 const OVERLAY_ID = 'a11y-torch-responsive-preview';
@@ -27,6 +29,8 @@ const SIZES = [
   { label: '📱 Mobile', width: 375, height: 667, desktop: false },
   { label: '📟 Tablet', width: 768, height: 1024, desktop: false },
   { label: '🖥️ Desktop', width: null, height: null, desktop: true },
+  // Reflow (WCAG 1.4.10): a 1280×1024 viewport at 400% zoom == 320×256 CSS px.
+  { label: '🔎 Reflow', width: 320, height: 256, desktop: false, fixed: true },
 ];
 
 const PORTRAIT = 'portrait';
@@ -51,8 +55,8 @@ export function createResponsivePreview() {
 
     const url = location.href;
 
-    // Per-session view state.
-    // Orientation persists across size changes and is ignored while Desktop (fluid) is active.
+    // Per-session view state. Orientation persists across size changes and is
+    // simply ignored while Desktop (fluid) or a fixed preset is active.
     let activeSize = null;
     let activeButton = null;
     let orientation = PORTRAIT;
@@ -100,9 +104,10 @@ export function createResponsivePreview() {
         stage.style.overflow = 'hidden';
         dimLabel.textContent = '';
       } else {
-        const portrait = orientation === PORTRAIT;
-        const width = portrait ? activeSize.width : activeSize.height;
-        const height = portrait ? activeSize.height : activeSize.width;
+        // Landscape swaps W/H, but never for a fixed preset (Reflow).
+        const swap = orientation === LANDSCAPE && !activeSize.fixed;
+        const width = swap ? activeSize.height : activeSize.width;
+        const height = swap ? activeSize.width : activeSize.height;
         frameWrap.style.width = width + 'px';
         frameWrap.style.height = height + 'px';
         frameWrap.style.borderRadius = '6px';
@@ -134,8 +139,7 @@ export function createResponsivePreview() {
     const buttons = SIZES.map((size) => {
       const button = document.createElement('button');
       button.textContent = size.label;
-
-      // aria-pressed so color alone doesn't convey the active preset.
+      // aria-pressed so the active preset isn't conveyed by color alone.
       button.setAttribute('aria-pressed', 'false');
       button.style.cssText =
           'background:#111;color:#aaa;border:1px solid #333;padding:5px 14px;' +
@@ -152,13 +156,13 @@ export function createResponsivePreview() {
         'border-radius:20px;font-family:monospace;font-size:12px;cursor:pointer;' +
         'margin-left:4px;';
     orientationButton.addEventListener('click', () => {
-      if (activeSize.desktop) return;
+      if (activeSize.desktop || activeSize.fixed) return;
       orientation = orientation === PORTRAIT ? LANDSCAPE : PORTRAIT;
       render();
     });
 
     function syncOrientationButton() {
-      const disabled = activeSize.desktop;
+      const disabled = activeSize.desktop || activeSize.fixed;
       orientationButton.disabled = disabled;
       orientationButton.style.opacity = disabled ? '0.4' : '1';
       orientationButton.style.cursor = disabled ? 'default' : 'pointer';
