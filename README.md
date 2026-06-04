@@ -3,9 +3,7 @@
 An accessibility inspection bookmarklet. Click it on any page to view that page through a set of toggleable lenses — responsive viewport, focus location, landmark structure, and image accessible names. Built as a fast manual-audit aid to use alongside automated tools like axe-core, WAVE, and Lighthouse.
 
 ## Status
-
-The viewport lens is built and working: **responsive sizing**, **orientation (#1)**, and **reflow (#2)** have all shipped. The remaining host-page inspection features ship one at a time.
-
+Viewport lens shipped (responsive sizing, #1 orientation, #2 reflow). Unified Shadow-DOM control panel + lens registry now in place. Build order: #5 → #4 → #3.
 **Build order:** `#5 → #4 → #3`.
 
 ## Working features

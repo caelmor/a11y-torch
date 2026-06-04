@@ -1,26 +1,27 @@
 /**
- * Responsive preview, Orientation (Feature #1) and Reflow (Feature #2).
+ * Responsive preview — viewport lens (Orientation #1 done; Reflow #2 preset).
  *
  * Loads the current page into a full-screen iframe overlay and renders it at a
  * chosen viewport size. This is the only context in which CSS media queries
- * respond to a simulated viewport, so all viewport features (orientation,
- * reflow) build on top of this.
+ * respond to a simulated viewport, so all viewport features build on it.
  *
- * Orientation (WCAG 1.3.4) and reflow (WCAG 1.4.10) both live here, not in
- * their own modules, because each is a pure transform of this overlay's own
- * dimension state — a width/height swap, and a fixed-dimension preset
- * respectively. Splitting them out would mean exposing that state across a
- * module boundary for no benefit. The host-page inspection features (#3-#5)
- * are the ones that earn their own modules.
+ * Under the unified-panel architecture this is now a registry LENS, not a
+ * free-standing controller:
+ *   - It mounts into the shared shadow root (ctx.root), not document.body, so
+ *     it's invisible to the tool's own inspection lenses.
+ *   - It's `exclusive` (full-screen) — the registry guarantees one at a time.
+ *   - Its ✕ Close and Escape call ctx.deactivateSelf() so the panel button
+ *     stays in sync and focus returns to that button.
+ *   - It exposes getInspectionTarget(): when the framed page is same-origin and
+ *     reachable, that contentDocument is what #3-#5 will inspect (the
+ *     cross-frame seam). Cross-origin → null → lenses fall back to the host.
  *
- * Each non-desktop preset carries an explicit portrait width AND height;
- * landscape swaps them — except for `fixed` presets (Reflow), whose dimensions
- * are prescribed by the success criterion and must not rotate. Desktop is fluid
- * (100%) and has no orientation, so the orientation control is disabled there
- * and on any fixed preset.
+ * Internal sizing/orientation logic is unchanged from the standalone version:
+ * each non-desktop preset carries explicit portrait W AND H; landscape swaps
+ * them, except for `fixed` presets (Reflow), whose dimensions are prescribed by
+ * the SC and must not rotate. Desktop is fluid and has no orientation.
  */
 
-const OVERLAY_ID = 'a11y-torch-responsive-preview';
 const ACCENT = '#4fc3f7';
 const BAR_HEIGHT = 48;
 
@@ -36,35 +37,37 @@ const SIZES = [
 const PORTRAIT = 'portrait';
 const LANDSCAPE = 'landscape';
 
-export function createResponsivePreview() {
+export function createResponsivePreviewLens() {
   let overlay = null;
+  let frame = null;
+  let lastFocused = null;
 
-  function isOpen() {
-    return !!overlay && document.body.contains(overlay);
-  }
-
-  function close() {
-    if (overlay) {
-      overlay.remove();
-      overlay = null;
+  // Cross-frame seam (see header). Same-origin frames are reachable; touching a
+  // cross-origin contentDocument throws, so we report "not reachable" and let
+  // inspection lenses target the host page instead.
+  function getInspectionTarget() {
+    try {
+      const doc = frame && frame.contentDocument;
+      if (doc) return { document: doc, window: frame.contentWindow };
+    } catch (_) {
+      /* cross-origin frame: not reachable */
     }
+    return null;
   }
 
-  function open() {
-    if (isOpen()) return;
-
+  function activate(ctx) {
+    if (overlay) return;
     const url = location.href;
 
     // Per-session view state. Orientation persists across size changes and is
-    // simply ignored while Desktop (fluid) or a fixed preset is active.
+    // ignored while Desktop (fluid) or a fixed preset is active.
     let activeSize = null;
     let activeButton = null;
     let orientation = PORTRAIT;
 
     overlay = document.createElement('div');
-    overlay.id = OVERLAY_ID;
     overlay.style.cssText =
-        'position:fixed;inset:0;z-index:2147483647;background:#0f0f0f;' +
+        'position:fixed;inset:0;z-index:1;pointer-events:auto;background:#0f0f0f;' +
         'display:flex;flex-direction:column;overflow:hidden;font-family:monospace;';
 
     const toolbar = document.createElement('div');
@@ -86,14 +89,14 @@ export function createResponsivePreview() {
     const frameWrap = document.createElement('div');
     frameWrap.style.cssText = 'width:100%;height:100%;overflow:hidden;background:#fff;';
 
-    const frame = document.createElement('iframe');
+    frame = document.createElement('iframe');
     frame.src = url;
+    frame.title = 'Responsive preview of the current page';
     frame.style.cssText = 'width:100%;height:100%;border:none;display:block;';
 
     const dimLabel = document.createElement('span');
     dimLabel.style.cssText = 'color:#555;font-size:11px;margin-left:2px;';
 
-    // Paints the active preset onto the stage, honoring the current orientation.
     function render() {
       if (activeSize.desktop) {
         frameWrap.style.width = '100%';
@@ -127,7 +130,6 @@ export function createResponsivePreview() {
         activeButton.style.borderColor = '#333';
         activeButton.setAttribute('aria-pressed', 'false');
       }
-
       activeButton = button;
       button.style.background = ACCENT;
       button.style.color = '#000';
@@ -138,8 +140,8 @@ export function createResponsivePreview() {
 
     const buttons = SIZES.map((size) => {
       const button = document.createElement('button');
+      button.type = 'button';
       button.textContent = size.label;
-      // aria-pressed so the active preset isn't conveyed by color alone.
       button.setAttribute('aria-pressed', 'false');
       button.style.cssText =
           'background:#111;color:#aaa;border:1px solid #333;padding:5px 14px;' +
@@ -149,8 +151,8 @@ export function createResponsivePreview() {
       return button;
     });
 
-    // Orientation toggle
     const orientationButton = document.createElement('button');
+    orientationButton.type = 'button';
     orientationButton.style.cssText =
         'background:#111;color:#aaa;border:1px solid #333;padding:5px 14px;' +
         'border-radius:20px;font-family:monospace;font-size:12px;cursor:pointer;' +
@@ -171,11 +173,19 @@ export function createResponsivePreview() {
     }
 
     const closeButton = document.createElement('button');
+    closeButton.type = 'button';
     closeButton.textContent = '✕ Close';
     closeButton.style.cssText =
         'margin-left:auto;background:transparent;border:1px solid #444;color:#aaa;' +
         'padding:5px 14px;border-radius:20px;font-family:monospace;font-size:12px;cursor:pointer;';
-    closeButton.addEventListener('click', close);
+    closeButton.addEventListener('click', () => ctx.deactivateSelf());
+
+    // Escape closes the overlay when focus is on the chrome (toolbar). Focus
+    // inside the iframe is captured by the framed document and won't reach here
+    // — the ✕ button and the panel toggle remain the reliable exits.
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') ctx.deactivateSelf();
+    });
 
     toolbar.prepend(label);
     toolbar.appendChild(orientationButton);
@@ -186,11 +196,42 @@ export function createResponsivePreview() {
     stage.appendChild(frameWrap);
     overlay.appendChild(toolbar);
     overlay.appendChild(stage);
-    document.body.appendChild(overlay);
+    ctx.root.appendChild(overlay);
 
-    // Default to Desktop, matching the original.
+    // Modal-ish focus management. The overlay covers the page; inert the host
+    // body so Tab can't reach now-hidden page controls behind it. Our shadow
+    // host lives on <html>, not <body>, so it stays interactive. We do NOT
+    // claim role="dialog"/aria-modal: a true focus trap can't span the iframe
+    // (esp. cross-origin), and over-claiming a trap we can't honor is the same
+    // mistake as a fake role="toolbar".
+    lastFocused = document.activeElement;
+    document.body.inert = true;
+    buttons[2].focus(); // Desktop, matching the default preset below.
+
     selectSize(SIZES[2], buttons[2]);
   }
 
-  return { open, close, isOpen };
+  function deactivate() {
+    if (!overlay) return;
+    overlay.remove();
+    overlay = null;
+    frame = null;
+    document.body.inert = false;
+    // If focus was elsewhere on the host page before opening, restore it; the
+    // panel separately returns focus to the Responsive button on self-close.
+    if (lastFocused && typeof lastFocused.focus === 'function' &&
+        document.documentElement.contains(lastFocused)) {
+      lastFocused.focus();
+    }
+    lastFocused = null;
+  }
+
+  return {
+    id: 'responsive-preview',
+    label: '📐 Responsive preview',
+    exclusive: true,
+    activate,
+    deactivate,
+    getInspectionTarget,
+  };
 }
