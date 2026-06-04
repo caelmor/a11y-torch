@@ -7,6 +7,11 @@
  * origin (the playground), and there is no mixed-content or Private Network
  * Access problem in any browser.
  *
+ * The dev bundle is written to dist/a11y-torch.dev.js — a SEPARATE path from the
+ * committed, minified dist/a11y-torch.min.js — so a running dev session can
+ * never overwrite the artifact. The dev build is unminified
+ * with an inline sourcemap and is gitignored.
+ *
  * Run: npm run dev (stop with Ctrl+C)
  */
 import * as esbuild from 'esbuild';
@@ -16,7 +21,7 @@ const PORT = 5174;
 const ctx = await esbuild.context({
   entryPoints: ['src/index.js'],
   bundle: true,
-  outfile: 'dist/a11y-torch.min.js',
+  outfile: 'dist/a11y-torch.dev.js',
   format: 'iife',
   target: 'es2017',
   sourcemap: 'inline',
@@ -27,5 +32,5 @@ const { port } = await ctx.serve({ servedir: '.', port: PORT });
 
 console.log('a11y-torch dev server running:');
 console.log(`  playground: http://localhost:${port}/dev/playground.html`);
-console.log(`  bundle:     http://localhost:${port}/dist/a11y-torch.min.js`);
+console.log(`  bundle:     http://localhost:${port}/dist/a11y-torch.dev.js`);
 console.log('Open the playground, click the dev bookmark, iterate. Ctrl+C to stop.');

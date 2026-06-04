@@ -9,6 +9,10 @@
  * page served from the same localhost origin (open the playground). Same-origin
  * http -> http means no mixed-content or Private Network Access issues.
  *
+ * Points at dist/a11y-torch.dev.js (the dev-only build) — NOT the committed
+ * dist/a11y-torch.min.js — so dev iteration and the shipped artifact never
+ * collide.
+ *
  * Run `npm run make:install` after editing to regenerate install.html.
  */
 (function () {

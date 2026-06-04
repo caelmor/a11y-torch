@@ -8,3 +8,7 @@ node_modules/
 *.swp
 
 # dist/ is intentionally committed — it is what jsDelivr / GitHub Pages serve.
+# EXCEPT the dev-only build: unminified + inline sourcemap, rebuilt on every
+# `npm run dev` request, never shipped.
+dist/a11y-torch.dev.js
+dist/a11y-torch.dev.js.map
