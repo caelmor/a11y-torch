@@ -4,10 +4,10 @@
  * Serves the repo over http://localhost:5174 and rebuilds the bundle on every
  * request, so the dev loader always gets fresh code. No GitHub Pages, no certs,
  * no headers: run the bookmarklet on a page served from this same localhost
- * origin (the playground) and there is no mixed-content or Private Network
+ * origin (the playground), and there is no mixed-content or Private Network
  * Access problem in any browser.
  *
- * Run: npm run dev   (stop with Ctrl+C)
+ * Run: npm run dev (stop with Ctrl+C)
  */
 import * as esbuild from 'esbuild';
 
