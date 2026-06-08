@@ -8,7 +8,7 @@
     "dev": "node scripts/dev-server.mjs",
     "build": "esbuild src/index.js --bundle --minify --format=iife --target=es2017 --outfile=dist/a11y-torch.min.js",
     "make:install": "node scripts/make-install.mjs",
-    "purge": "node -e \"fetch('https://purge.jsdelivr.net/gh/USER/a11y-torch@main/dist/a11y-torch.min.js').then(r=>r.text()).then(console.log)\""
+    "purge": "node -e \"fetch('https://purge.jsdelivr.net/gh/caelmor/a11y-torch@main/dist/a11y-torch.min.js').then(r=>r.text()).then(console.log)\""
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

@@ -35,7 +35,7 @@ import { createResponsivePreviewLens } from './features/responsive-preview.js';
 
 //   import { createFocusOverlayLens } from './features/focus-overlay.js';  // #3
 //   import { createLandmarkLens } from './features/landmarks.js';          // #4
-//   import { createImageNameLens } from './features/image-names.js';       // #5
+import { createImageNameLens } from './features/image-names.js';       // #5
 
 const NAMESPACE = '__a11yTorch';
 const VERSION = '0.1.0';
@@ -70,7 +70,7 @@ const VERSION = '0.1.0';
     registry.register(createResponsivePreviewLens());
     // registry.register(createFocusOverlayLens());  // #3
     // registry.register(createLandmarkLens());      // #4
-    // registry.register(createImageNameLens());     // #5
+    registry.register(createImageNameLens());     // #5
   }
 
   function open() {

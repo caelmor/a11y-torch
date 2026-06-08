@@ -17,9 +17,7 @@
   }
 
   const s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/USER/a11y-torch@v0.1.0/dist/a11y-torch.min.js';
-  //                                  ^^^^  <- your GitHub username
-
+  s.src = 'https://cdn.jsdelivr.net/gh/caelmor/a11y-torch@v0.1.1/dist/a11y-torch.min.js';
   s.setAttribute('data-a11y-torch', '');
   s.onload = function () {
     if (window[NS]) window[NS].open();
