@@ -1,14 +1,20 @@
 # a11y-torch 🔦
 
-An accessibility inspection bookmarklet. Click it on any page to view that page through a set of toggleable lenses — responsive viewport, focus location, landmark structure, and image accessible names. Built as a fast manual-audit aid to use alongside automated tools like axe-core, WAVE, and Lighthouse.
+An accessibility inspection bookmarklet. Click it on any page to view that page through a set of toggleable lenses — responsive viewport, image accessible names, focus location, and landmark structure. Built as a fast manual-audit aid to use alongside automated tools like axe-core, WAVE, and Lighthouse.
 
 ## Status
-Viewport lens shipped (responsive sizing, #1 orientation, #2 reflow). Unified Shadow-DOM control panel + lens registry now in place. Build order: #5 → #4 → #3.
-**Build order:** `#5 → #4 → #3`.
+
+Shipped: the responsive viewport lens (sizing, #1 orientation, #2 reflow) and the image accessible-name exposer (#5), on a unified Shadow-DOM control panel + lens registry.
+
+**Build order:** `#4 → #3`.
 
 ## Working features
 
-All viewport features run **inside the preview iframe** — the only context where CSS media queries respond to a simulated viewport. They share a single sizing path, so presets and orientation never drift apart.
+a11y-torch runs in **two execution contexts** by design. **Viewport lenses** operate inside the preview iframe — the only place CSS media queries respond to a simulated viewport. **Inspection lenses** paint over the live host page. While the full-screen preview is open it owns the screen, so the preview and the inspection lenses are mutually exclusive — one or the other.
+
+### Viewport lens — inside the preview iframe
+
+Shares a single sizing path, so presets and orientation never drift apart.
 
 | Lens | Control | Notes |
 |---|---|---|
@@ -16,19 +22,33 @@ All viewport features run **inside the preview iframe** — the only context whe
 | **Orientation** (WCAG 1.3.4) | `↻ Portrait` / `↻ Landscape` | Swaps width/height of the active device preset. Disabled on Desktop (fluid) and Reflow (fixed). |
 | **Reflow** (WCAG 1.4.10) | `🔎 Reflow` (320 × 256) | 1280 × 1024 viewport at 400% zoom. Orientation is locked — the SC prescribes these dimensions. |
 
+### Inspection lens — on the host page
+
+| Lens | Control | Notes |
+|---|---|---|
+| **Image accessible names** (WCAG 1.1.1) | `🖼️ Image names` | Outlines every `<img>` and shows its accessible name plus the source it came from. Greys out **decorative** images (`alt=""`, `role="presentation"/"none"`) and images **hidden from AT** (`aria-hidden` on the image or any ancestor); flags a **red border** when there is no accessible name — the missing-`alt` case. Name precedence follows accname: `aria-labelledby` → `aria-label` → `alt` → `title`. Hover a label to read it in full where images sit close together. |
+
 ## How it works
 
 The bundle (`dist/a11y-torch.min.js`) is a **pure library**: it registers `window.__a11yTorch` (`open` / `close` / `toggle` / `destroy`) and opens nothing on its own. A small **loader bookmarklet is the controller** — the first click injects the bundle and opens it; later clicks toggle it without re-fetching. On load the bundle tears down any prior instance, so dev re-injection is clean.
 
-Two execution contexts, kept separate by design: **viewport features** (orientation, reflow) operate on the preview iframe and live in `responsive-preview.js`; **inspection features** (#3–#5) operate on the host page by default and each get their own module.
+All UI lives in **one Shadow-DOM host**, so the tool's own chrome is invisible to the tool's own lenses. A **lens registry** is the extensibility seam: each feature is a self-contained descriptor, and adding the next one is "write the module, register it in `index.js`" — no panel, lifecycle, or isolation changes per feature. The floating **control panel** is the single control surface for every lens.
+
+Two execution contexts, kept separate by design: **viewport features** (orientation, reflow) operate on the preview iframe and live in `responsive-preview.js`; **inspection features** operate on the host page and each get their own module — image accessible names (#5) ships in `image-names.js`, with focus (#3) and landmarks (#4) to follow.
 
 ## Project structure
 
 ```
 a11y-torch/
 ├── src/
-│   ├── index.js                       # entry: defines window.__a11yTorch (open/close/toggle/destroy)
-│   └── features/responsive-preview.js # viewport lens: responsive sizes + orientation + reflow
+│   ├── index.js                       # entry: window.__a11yTorch (open/close/toggle/destroy); registers lenses
+│   ├── core/registry.js               # lens registry — the extensibility core
+│   ├── ui/
+│   │   ├── shadow-host.js             # single Shadow-DOM mount for all UI
+│   │   └── control-panel.js          # persistent floating control panel
+│   └── features/
+│       ├── responsive-preview.js     # viewport lens: responsive sizes + orientation + reflow
+│       └── image-names.js            # inspection lens: image accessible names (#5)
 ├── loader/
 │   ├── prod.js                        # toggle-if-loaded, else inject pinned jsDelivr bundle
 │   └── dev.js                         # always tears down + re-fetches fresh (cache-busted)
@@ -54,7 +74,7 @@ The dev loader and the page share the same `http://localhost` origin, so there i
 
 ## Install
 
-Open `install.html`, show your bookmarks bar (`Ctrl+Shift+B` / `Cmd+Shift+B`), drag a button onto it, then click it on any page. Click again or hit ✕ Close to exit.
+Open `install.html` in a browser, show your bookmarks bar (`Ctrl+Shift+B` / `Cmd+Shift+B`), drag the 🔦 button onto it, then click it on any page. Click again or hit ✕ Close to exit. The production bundle is served from jsDelivr pinned to an immutable release tag.
 
 ## Scripts
 
@@ -63,4 +83,3 @@ Open `install.html`, show your bookmarks bar (`Ctrl+Shift+B` / `Cmd+Shift+B`), d
 | `npm run build` | Bundle + minify `src` → `dist/a11y-torch.min.js` |
 | `npm run dev` | Start the local dev server (rebuild-on-request) on `:5174` |
 | `npm run make:install` | Regenerate `install.html` from `loader/*.js` |
-| `npm run purge` | Purge the jsDelivr cache for the `@main` bundle |
