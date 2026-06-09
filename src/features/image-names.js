@@ -1,5 +1,5 @@
 /**
- * Image accessible-name exposer — host-page inspection lens (#5, WCAG 1.1.1).
+ * Image accessible-name exposer — host-page inspection lens
  *
  * The FIRST inspection lens, so it sets the pattern #3 and #4 follow:
  *   - Inspects ctx.getTarget().document — the host page by default, or a
@@ -47,8 +47,6 @@ const ACCENT = '#4fc3f7';
 const ERROR = '#ff3b30';
 const GREY_WASH = 'rgba(110,110,110,0.65)';
 
-// Chip colors are part of the tool's own UI, so they must themselves meet WCAG
-// 1.4.3: black on accent ~10.8:1, white on #555 ~7.7:1, black on #ff3b30 ~6:1.
 const STYLE =
     '.a11yt-img-box{position:absolute;box-sizing:border-box;pointer-events:none;overflow:visible;}' +
     '.a11yt-img-named{border:2px solid ' + ACCENT + ';}' +
@@ -58,11 +56,6 @@ const STYLE =
     'font-family:"Courier New",monospace;font-size:11px;font-weight:bold;line-height:1.3;' +
     'padding:2px 6px;border-radius:0 0 4px 0;white-space:nowrap;overflow:hidden;' +
     'text-overflow:ellipsis;pointer-events:auto;cursor:default;}' +
-    // Hover reveals the full label and lifts it above neighbouring chips, so
-    // labels on closely-packed images stay readable. Pure CSS: the chip is the
-    // ONE pointer-events:auto element (the box stays click-through), and its
-    // z-index competes directly in the overlay layer's stacking context because
-    // the boxes use z-index:auto and never open a context of their own.
     '.a11yt-img-chip:hover{max-width:none;overflow:visible;z-index:10;}' +
     '.a11yt-chip-named{background:' + ACCENT + ';color:#000;}' +
     '.a11yt-chip-grey{background:#555;color:#fff;}' +
@@ -75,8 +68,8 @@ const SOURCE_TAG = {
     title: '[title] ',
 };
 
-// accname precedence for <img>: aria-labelledby -> aria-label -> alt -> title.
-// Returns one of: {name, source} | {decorative, reason} | {missing:true}.
+// Accessible name precedence for <img>: aria-labelledby -> aria-label -> alt -> title
+// Returns one of: {name, source} | {decorative, reason} | {missing:true}
 function accessibleName(img, doc) {
     const labelledby = img.getAttribute('aria-labelledby');
     if (labelledby) {
@@ -95,21 +88,21 @@ function accessibleName(img, doc) {
     const ariaLabel = img.getAttribute('aria-label');
     if (ariaLabel && ariaLabel.trim()) return { name: ariaLabel.trim(), source: 'aria-label' };
 
-    // The crux: present-but-empty alt is decorative; an absent alt is an omission.
+    // Present but empty alt is decorative, an absent alt is a fail
     if (img.hasAttribute('alt')) {
         const alt = img.getAttribute('alt');
         if (alt.trim()) return { name: alt.trim(), source: 'alt' };
         return { decorative: true, reason: 'alt=""' };
     }
 
-    // title only contributes as a name when alt is absent.
+    // title only contributes as a name when alt is absent
     const title = img.getAttribute('title');
     if (title && title.trim()) return { name: title.trim(), source: 'title' };
 
     return { missing: true };
 }
 
-// Returns {kind: 'named'|'grey'|'error', chip: string}.
+// Returns {kind: 'named'|'grey'|'error', chip: string}
 function classify(img, doc) {
     // Removed from the a11y tree entirely — self or any ancestor.
     const hiddenEl = img.closest('[aria-hidden="true"]');
@@ -141,8 +134,7 @@ export function createImageNameLens() {
         styleEl.textContent = STYLE;
         ctx.root.appendChild(styleEl);
 
-        // One wrapper so teardown is a single removeChild and we never disturb the
-        // boxes #3/#4 will add to the same shared overlay layer.
+        // One wrapper so teardown is a single removeChild
         const wrap = document.createElement('div');
         wrap.setAttribute('data-a11y-torch', 'image-names');
         ctx.overlayLayer.appendChild(wrap);
@@ -160,10 +152,7 @@ export function createImageNameLens() {
             entries.push({ img, box });
         });
 
-        // The overlay layer is position:fixed at the viewport origin, so an image's
-        // viewport-relative getBoundingClientRect() maps straight onto an absolutely
-        // positioned child. Re-read on scroll/resize because the boxes don't move
-        // with the page; capture:true also catches scroll inside nested containers.
+        // The overlay layer is position:fixed at the viewport origin
         function reposition() {
             for (const { img, box } of entries) {
                 const r = img.getBoundingClientRect();
@@ -180,7 +169,7 @@ export function createImageNameLens() {
         }
 
         reposition();
-        // Settle once after layout (catches images that size up just after scan).
+        // Settle once after layout
         const raf = typeof win.requestAnimationFrame === 'function' ? win.requestAnimationFrame(reposition) : 0;
         win.addEventListener('scroll', reposition, true);
         win.addEventListener('resize', reposition);

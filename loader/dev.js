@@ -1,20 +1,8 @@
 /**
  * a11y-torch — dev loader.
- *
- * Always fetches a FRESH bundle from the local dev server so you can iterate
- * without re-dragging the bookmark: tears down any existing instance, removes
- * prior injected scripts, and reloads with a cache-busting timestamp.
- *
- * No edits needed. Requires `npm run dev` running, and you must click this on a
- * page served from the same localhost origin (open the playground). Same-origin
- * http -> http means no mixed-content or Private Network Access issues.
- *
- * Points at dist/a11y-torch.dev.js (the dev-only build) — NOT the committed
- * dist/a11y-torch.min.js — so dev iteration and the shipped artifact never
- * collide.
- *
  * Run `npm run make:install` after editing to regenerate install.html.
  */
+
 (function () {
   const NS = '__a11yTorch';
   if (window[NS] && window[NS].destroy) {

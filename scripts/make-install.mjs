@@ -1,12 +1,7 @@
 /**
  * Regenerates install.html from the loader sources.
- *
- * Minifies loader/prod.js and loader/dev.js, percent-encodes each into a
- * `javascript:` bookmarklet URL (encoding sidesteps any quote/space issues in
- * the href attribute), and writes them into the install page template.
- *
- * Run: npm run make:install   (after editing the USER/tag placeholders)
  */
+
 import { transform } from 'esbuild';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';

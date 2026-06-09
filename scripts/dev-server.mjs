@@ -1,19 +1,10 @@
 /**
  * a11y-torch — local dev server.
  *
- * Serves the repo over http://localhost:5174 and rebuilds the bundle on every
- * request, so the dev loader always gets fresh code. No GitHub Pages, no certs,
- * no headers: run the bookmarklet on a page served from this same localhost
- * origin (the playground), and there is no mixed-content or Private Network
- * Access problem in any browser.
- *
- * The dev bundle is written to dist/a11y-torch.dev.js — a SEPARATE path from the
- * committed, minified dist/a11y-torch.min.js — so a running dev session can
- * never overwrite the artifact. The dev build is unminified
- * with an inline sourcemap and is gitignored.
- *
+ * Serves the repo over http://localhost:5174 and rebuilds the bundle
  * Run: npm run dev (stop with Ctrl+C)
  */
+
 import * as esbuild from 'esbuild';
 
 const PORT = 5174;
