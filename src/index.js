@@ -10,7 +10,7 @@
  *     and the host-page inspection layer for #3-#5). The tool's own chrome is
  *     therefore invisible to the tool's own lenses.
  *   - A lens REGISTRY is the extensibility seam. Each feature is a descriptor
- *     { id, label, exclusive?, activate, deactivate, getInspectionTarget? }.
+ *     { id, label, group?, activate, deactivate, getInspectionTarget? }.
  *     Adding #3/#4/#5 is: write the module, register it below. Nothing else.
  *   - The panel is THE control surface for all lenses, viewport and inspection
  *     alike. open() shows the panel (not the preview); the preview is just the
@@ -32,8 +32,7 @@ import { createControlPanel } from './ui/control-panel.js';
 import { createResponsivePreviewLens } from './features/responsive-preview.js';
 // Host-page inspection lenses. Register here when built — purely additive; no
 // panel / lifecycle / isolation changes are needed per feature:
-
-//   import { createFocusOverlayLens } from './features/focus-overlay.js';  // #3
+import { createFocusOverlayLens } from './features/focus-overlay.js';  // #3
 //   import { createLandmarkLens } from './features/landmarks.js';          // #4
 import { createImageNameLens } from './features/image-names.js';       // #5
 
@@ -41,13 +40,13 @@ const NAMESPACE = '__a11yTorch';
 const VERSION = '0.1.0';
 
 (function bootstrap() {
-  // Tear down a previous instance (clean dev re-injection over an old bundle).
+  // Tear down a previous instance (clean dev re-injection over an old bundle)
   const existing = window[NAMESPACE];
   if (existing && typeof existing.destroy === 'function') {
     try {
       existing.destroy();
     } catch (_) {
-      /* ignore teardown errors from a stale instance */
+      // ignore teardown errors from a stale instance
     }
   }
 
@@ -68,7 +67,7 @@ const VERSION = '0.1.0';
     panel = createControlPanel({ root: host.root, getRegistry: () => registry });
 
     registry.register(createResponsivePreviewLens());
-    // registry.register(createFocusOverlayLens());  // #3
+    registry.register(createFocusOverlayLens());  // #3
     // registry.register(createLandmarkLens());      // #4
     registry.register(createImageNameLens());     // #5
   }

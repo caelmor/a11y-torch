@@ -8,14 +8,19 @@
  *
  * Lens descriptor:
  *   {
- *     id:        string   unique key
- *     label:     string   button text (practitioner-readable)
- *     exclusive: boolean  optional; a full-screen lens (the preview) that can't
- *                         co-exist with another exclusive lens
+ *     id:     string   unique key
+ *     label:  string   button text (practitioner-readable)
+ *     group:  string   optional exclusivity group:
+ *                        'fullscreen' — owns the screen (the preview). SOLO:
+ *                          activating it suspends every other lens, and any
+ *                          other lens activating suspends it.
+ *                        'inspect'    — host-page lenses (#3-#5). They COMPOSE
+ *                          with each other and merely yield to a 'fullscreen'
+ *                          lens. (no group → composes freely, yields to nothing)
  *     activate(ctx)       turn on; mount UI into ctx.root / ctx.overlayLayer
  *     deactivate(ctx)     turn off; remove everything it added
- *     getInspectionTarget()  optional; an exclusive viewport lens may expose the
- *                         document/window that inspection lenses should target
+ *     getInspectionTarget()  optional; a 'fullscreen' viewport lens may expose
+ *                         the document/window inspection lenses should target
  *                         instead of the host page (the cross-frame seam).
  *   }
  *
@@ -29,28 +34,32 @@
  *   }
  */
 
+// Groups whose members own the screen: only one can be active
+const SOLO_GROUPS = new Set(['fullscreen']);
+
+const isSolo = (lens) => !!lens && SOLO_GROUPS.has(lens.group);
+
 export function createRegistry({ root, overlayLayer, onChange }) {
     const lenses = []; // descriptors, in registration order
     const active = new Set(); // ids currently on
 
     const byId = (id) => lenses.find((l) => l.id === id) || null;
 
-    function getActiveExclusive() {
+    // The active solo (full-screen) lens
+    function getActiveSolo() {
         for (const l of lenses) {
-            if (l.exclusive && active.has(l.id)) return l;
+            if (isSolo(l) && active.has(l.id)) return l;
         }
         return null;
     }
 
     // The cross-frame seam. Inspection lenses (#3-#5) call this to learn what to
-    // inspect: the host document by default, or when a viewport lens is active
-    // and exposes a reachable contentDocument, that frame instead. Nothing
-    // consumes the iframe branch yet; the wiring is here so #3-#5 don't have to
-    // know the preview exists.
+    // inspect: the host document by default, or when a solo viewport lens is
+    // active and exposes a reachable contentDocument, that frame instead.
     function getTarget() {
-        const ex = getActiveExclusive();
-        if (ex && typeof ex.getInspectionTarget === 'function') {
-            const t = ex.getInspectionTarget();
+        const solo = getActiveSolo();
+        if (solo && typeof solo.getInspectionTarget === 'function') {
+            const t = solo.getInspectionTarget();
             if (t && t.document) return t;
         }
         return { document, window };
@@ -74,10 +83,14 @@ export function createRegistry({ root, overlayLayer, onChange }) {
     function activate(id) {
         const lens = byId(id);
         if (!lens || active.has(id)) return;
-        // One exclusive lens at a time.
-        if (lens.exclusive) {
-            const current = getActiveExclusive();
-            if (current && current.id !== id) deactivate(current.id);
+        if (isSolo(lens)) {
+            // Owns the screen — suspend every other lens.
+            for (const other of [...active]) deactivate(other);
+        } else {
+            // Compose with peer inspection lenses, but yield to a solo lens.
+            for (const other of [...active]) {
+                if (isSolo(byId(other))) deactivate(other);
+            }
         }
         lens.activate(contextFor(lens));
         active.add(id);
@@ -91,7 +104,6 @@ export function createRegistry({ root, overlayLayer, onChange }) {
         active.delete(id);
         // Return focus to the lens's button only when the lens turned ITSELF off
         // (e.g. preview ✕ / Escape) — otherwise the full-screen overlay vanishes
-        // and keyboard focus is orphaned.
         notify(selfInitiated ? id : null);
     }
 
@@ -108,7 +120,7 @@ export function createRegistry({ root, overlayLayer, onChange }) {
             active.has(id) ? deactivate(id) : activate(id);
         },
         deactivateAll() {
-            // Snapshot — deactivating mutates `active`.
+            // Snapshot — deactivating mutates `active`
             for (const id of [...active]) deactivate(id);
         },
     };

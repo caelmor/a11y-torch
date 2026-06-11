@@ -8,15 +8,12 @@
  *   - Paints into ctx.overlayLayer (the shared pointer-events:none box layer),
  *     never into the host DOM. The images under audit are untouched and the
  *     page stays interactive. Teardown is removing our own wrapper + style node.
- *   - exclusive:true — but this is a TEMPORARY coupling against the preview, not
- *     a pattern #3/#4 should copy wholesale. The preview is a full-screen,
- *     opaque overlay; host-page boxes painted in the (lower) overlay layer are
- *     occluded behind it, so "both on" reads as broken. Marking this exclusive
- *     makes the registry enforce one-or-the-other. When #3/#4 land we generalise
- *     exclusivity into groups (inspection lenses compose with EACH OTHER, but
- *     all of them still yield the screen to the preview). True simultaneous
- *     preview+inspect needs the cross-frame seam (inspect the iframe doc and
- *     paint above the preview) — deliberately deferred.
+ *   - group:'inspect' — composes with the other host-page inspection lenses
+ *     (e.g. focus location) and only yields the screen to the full-screen
+ *     preview. The preview is opaque, so boxes painted in the (lower) overlay
+ *     layer would be occluded behind it; the registry suspends inspect lenses
+ *     while it's up. True simultaneous preview+inspect needs the cross-frame
+ *     seam (inspect the iframe doc and paint above the preview) — deferred.
  *
  * Per <img> in the target document:
  *   - HAS a name      -> accent outline + chip showing the name and its source
@@ -192,7 +189,7 @@ export function createImageNameLens() {
     return {
         id: 'image-names',
         label: '🖼️ Image names',
-        exclusive: true,
+        group: 'inspect',
         activate,
         deactivate,
     };

@@ -9,7 +9,8 @@
  * free-standing controller:
  *   - It mounts into the shared shadow root (ctx.root), not document.body, so
  *     it's invisible to the tool's own inspection lenses.
- *   - It's `exclusive` (full-screen) — the registry guarantees one at a time.
+ *   - It's `group:'fullscreen'` (solo) — the registry suspends every other lens
+ *     while it's up.
  *   - Its ✕ Close and Escape call ctx.deactivateSelf() so the panel button
  *     stays in sync and focus returns to that button.
  *   - It exposes getInspectionTarget(): when the framed page is same-origin and
@@ -25,7 +26,7 @@
 const ACCENT = '#4fc3f7';
 const BAR_HEIGHT = 48;
 
-// Portrait dimensions. Landscape is derived by swapping width/height.
+// Portrait dimensions. Landscape is derived by swapping width/height
 const SIZES = [
   { label: '📱 Mobile', width: 375, height: 667, desktop: false },
   { label: '📟 Tablet', width: 768, height: 1024, desktop: false },
@@ -44,7 +45,7 @@ export function createResponsivePreviewLens() {
 
   // Cross-frame seam (see header). Same-origin frames are reachable; touching a
   // cross-origin contentDocument throws, so we report "not reachable" and let
-  // inspection lenses target the host page instead.
+  // inspection lenses target the host page instead
   function getInspectionTarget() {
     try {
       const doc = frame && frame.contentDocument;
@@ -60,7 +61,7 @@ export function createResponsivePreviewLens() {
     const url = location.href;
 
     // Per-session view state. Orientation persists across size changes and is
-    // ignored while Desktop (fluid) or a fixed preset is active.
+    // ignored while Desktop (fluid) or a fixed preset is active
     let activeSize = null;
     let activeButton = null;
     let orientation = PORTRAIT;
@@ -107,7 +108,7 @@ export function createResponsivePreviewLens() {
         stage.style.overflow = 'hidden';
         dimLabel.textContent = '';
       } else {
-        // Landscape swaps W/H, but never for a fixed preset (Reflow).
+        // Landscape swaps W/H, but never for a fixed preset (Reflow)
         const swap = orientation === LANDSCAPE && !activeSize.fixed;
         const width = swap ? activeSize.height : activeSize.width;
         const height = swap ? activeSize.width : activeSize.height;
@@ -180,9 +181,7 @@ export function createResponsivePreviewLens() {
         'padding:5px 14px;border-radius:20px;font-family:monospace;font-size:12px;cursor:pointer;';
     closeButton.addEventListener('click', () => ctx.deactivateSelf());
 
-    // Escape closes the overlay when focus is on the chrome (toolbar). Focus
-    // inside the iframe is captured by the framed document and won't reach here
-    // — the ✕ button and the panel toggle remain the reliable exits.
+    // Escape closes the overlay when focus is on the chrome (toolbar)
     overlay.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') ctx.deactivateSelf();
     });
@@ -200,13 +199,10 @@ export function createResponsivePreviewLens() {
 
     // Modal-ish focus management. The overlay covers the page; inert the host
     // body so Tab can't reach now-hidden page controls behind it. Our shadow
-    // host lives on <html>, not <body>, so it stays interactive. We do NOT
-    // claim role="dialog"/aria-modal: a true focus trap can't span the iframe
-    // (esp. cross-origin), and over-claiming a trap we can't honor is the same
-    // mistake as a fake role="toolbar".
+    // host lives on <html>, not <body>, so it stays interactive
     lastFocused = document.activeElement;
     document.body.inert = true;
-    buttons[2].focus(); // Desktop, matching the default preset below.
+    buttons[2].focus(); // Desktop, matching the default preset below
 
     selectSize(SIZES[2], buttons[2]);
   }
@@ -217,8 +213,7 @@ export function createResponsivePreviewLens() {
     overlay = null;
     frame = null;
     document.body.inert = false;
-    // If focus was elsewhere on the host page before opening, restore it; the
-    // panel separately returns focus to the Responsive button on self-close.
+    // If focus was elsewhere on the host page before opening, restore it
     if (lastFocused && typeof lastFocused.focus === 'function' &&
         document.documentElement.contains(lastFocused)) {
       lastFocused.focus();
@@ -229,7 +224,7 @@ export function createResponsivePreviewLens() {
   return {
     id: 'responsive-preview',
     label: '📐 Responsive preview',
-    exclusive: true,
+    group: 'fullscreen',
     activate,
     deactivate,
     getInspectionTarget,
