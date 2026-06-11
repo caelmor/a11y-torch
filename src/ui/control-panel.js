@@ -23,8 +23,7 @@
 const ACCENT = '#4fc3f7';
 const FOCUS_RING = '#e8e8e8';
 
-// Dock cycle order: clockwise from top-right. Glyph = a quadrant square with
-// the current corner filled (visual cue); the aria-label carries the text name.
+// Dock cycle order: clockwise from top-right
 const DOCKS = ['tr', 'br', 'bl', 'tl'];
 const DOCK_NAME = { tr: 'top right', br: 'bottom right', bl: 'bottom left', tl: 'top left' };
 const DOCK_GLYPH = { tr: '\u25F3', br: '\u25F2', bl: '\u25F1', tl: '\u25F0' };
@@ -47,14 +46,14 @@ const STYLE =
     '.lens:hover:not(:disabled):not([aria-pressed="true"]){border-color:' + ACCENT + ';color:' + ACCENT + '}' +
     '.lens:focus-visible{outline:2px solid ' + FOCUS_RING + ';outline-offset:2px}' +
     '.lens[aria-pressed="true"]{background:' + ACCENT + ';color:#000;border-color:' + ACCENT + '}' +
-    '.lens:disabled{opacity:.4;cursor:default}';
+    '.lens:disabled{opacity:.4;cursor:default}' +
+    '.panel__stamp{padding:6px 10px;border-top:1px solid #2a2a2a;color:#666;font-size:10px;letter-spacing:.04em;font-family:"Courier New",monospace}';
 
-export function createControlPanel({ root, getRegistry }) {
+export function createControlPanel({ root, getRegistry, version }) {
     let styleEl = null;
     let container = null;
     let closeButton = null;
-    // Dock position persists across hide/show within one panel instance, so
-    // re-opening the panel keeps it where the tester last parked it.
+    // Dock position persists across hide/show within one panel instance
     let dockIndex = 0;
     const buttons = new Map(); // id -> <button>
 
@@ -96,7 +95,7 @@ export function createControlPanel({ root, getRegistry }) {
                 const dock = DOCKS[dockIndex];
                 container.dataset.dock = dock;
                 dockButton.textContent = DOCK_GLYPH[dock];
-                // Name reflects the resulting position so AT users know where it went.
+                // Name reflects the resulting position so AT users know where it went
                 dockButton.setAttribute('aria-label', 'Move a11y-torch panel (now ' + DOCK_NAME[dock] + ')');
             }
             dockButton.addEventListener('click', () => {
@@ -129,8 +128,16 @@ export function createControlPanel({ root, getRegistry }) {
                 body.appendChild(btn);
             }
 
+            // Build stamp: version + live lens count
+            const stamp = document.createElement('div');
+            stamp.className = 'panel__stamp';
+            const n = reg.list().length;
+            stamp.textContent =
+                'v' + (version || '?') + ' \u00B7 ' + n + (n === 1 ? ' lens' : ' lenses');
+
             container.appendChild(bar);
             container.appendChild(body);
+            container.appendChild(stamp);
             applyDock(); // set initial dock data-attr + button label
             root.appendChild(styleEl);
             root.appendChild(container);

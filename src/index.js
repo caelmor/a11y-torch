@@ -37,16 +37,16 @@ import { createFocusOverlayLens } from './features/focus-overlay.js';  // #3
 import { createImageNameLens } from './features/image-names.js';       // #5
 
 const NAMESPACE = '__a11yTorch';
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 
 (function bootstrap() {
-  // Tear down a previous instance (clean dev re-injection over an old bundle)
+  // Tear down a previous instance (clean dev re-injection over an old bundle).
   const existing = window[NAMESPACE];
   if (existing && typeof existing.destroy === 'function') {
     try {
       existing.destroy();
     } catch (_) {
-      // ignore teardown errors from a stale instance
+      /* ignore teardown errors from a stale instance */
     }
   }
 
@@ -64,7 +64,7 @@ const VERSION = '0.1.0';
         if (panel) panel.sync(returnFocusToId);
       },
     });
-    panel = createControlPanel({ root: host.root, getRegistry: () => registry });
+    panel = createControlPanel({ root: host.root, getRegistry: () => registry, version: VERSION });
 
     registry.register(createResponsivePreviewLens());
     registry.register(createFocusOverlayLens());  // #3
