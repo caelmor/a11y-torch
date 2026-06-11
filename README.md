@@ -1,4 +1,4 @@
-# torch-nav 🔦
+# a11y-torch 🔦
 
 An accessibility inspection bookmarklet. Click it on any page to view that page through a set of toggleable lenses — responsive viewport, image accessible names, focus location, and landmark structure. Built as a fast manual-audit aid to use alongside automated tools like axe-core, WAVE, and Lighthouse.
 
