@@ -30,17 +30,16 @@ import { createShadowHost } from './ui/shadow-host.js';
 import { createRegistry } from './core/registry.js';
 import { createControlPanel } from './ui/control-panel.js';
 import { createResponsivePreviewLens } from './features/responsive-preview.js';
-// Host-page inspection lenses. Register here when built — purely additive; no
-// panel / lifecycle / isolation changes are needed per feature:
+// Host-page inspection lenses. Register here when built
 import { createFocusOverlayLens } from './features/focus-overlay.js';  // #3
-//   import { createLandmarkLens } from './features/landmarks.js';          // #4
+import { createLandmarkLens } from './features/landmarks.js';          // #4
 import { createImageNameLens } from './features/image-names.js';       // #5
 
 const NAMESPACE = '__a11yTorch';
 const VERSION = '0.2.0';
 
 (function bootstrap() {
-  // Tear down a previous instance (clean dev re-injection over an old bundle).
+  // Tear down a previous instance (clean dev re-injection over an old bundle)
   const existing = window[NAMESPACE];
   if (existing && typeof existing.destroy === 'function') {
     try {
@@ -68,7 +67,7 @@ const VERSION = '0.2.0';
 
     registry.register(createResponsivePreviewLens());
     registry.register(createFocusOverlayLens());  // #3
-    // registry.register(createLandmarkLens());      // #4
+    registry.register(createLandmarkLens());      // #4
     registry.register(createImageNameLens());     // #5
   }
 

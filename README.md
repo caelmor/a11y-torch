@@ -4,9 +4,7 @@ An accessibility inspection bookmarklet. Click it on any page to view that page 
 
 ## Status
 
-Shipped: the responsive viewport lens (sizing, #1 orientation, #2 reflow), the focus-location overlay (#3), and the image accessible-name exposer (#5), on a unified Shadow-DOM control panel + lens registry.
-
-**Build order:** `#4`.
+Shipped: the responsive viewport lens (sizing, #1 orientation, #2 reflow), the focus-location overlay (#3), the landmark highlighter (#4), and the image accessible-name exposer (#5), on a unified Shadow-DOM control panel + lens registry.
 
 ## Working features
 
@@ -27,6 +25,7 @@ Shares a single sizing path, so presets and orientation never drift apart.
 | Lens | Control | Notes |
 |---|---|---|
 | **Focus location** (WCAG 2.4.7) | `🎯 Focus location` | Tracks `document.activeElement` with a black box (NVDA-overlay style), repositioned on focus/scroll/resize via `getBoundingClientRect()`. Reveals **where** focus is without touching the page's own indicator, so a missing/weak native focus style stays auditable. Drawn just outside the element; `pointer-events:none` and out of the tab order. |
+| **Landmarks** (APG Landmark Regions) | `🗺️ Landmarks` | Outlines every landmark region and labels it with its **role + accessible name**. Detects native elements (`header`→banner, `nav`, `main`, `aside`→complementary, `footer`→contentinfo, `section`→region, `form`, `search`) and explicit landmark roles, applying real HTML-AAM rules: an explicit `role` wins over native semantics; scoped `header`/`footer`, and unnamed `section`/`form`, are **not** landmarks. Flags anti-patterns in **amber** — duplicate `banner`/`main`/`contentinfo`, and same-role landmarks not told apart by a unique accessible name. |
 | **Image accessible names** (WCAG 1.1.1) | `🖼️ Image names` | Outlines every `<img>` and shows its accessible name plus the source it came from. Greys out **decorative** images (`alt=""`, `role="presentation"/"none"`) and images **hidden from AT** (`aria-hidden` on the image or any ancestor); flags a **red border** when there is no accessible name — the missing-`alt` case. Name precedence follows accname: `aria-labelledby` → `aria-label` → `alt` → `title`. Hover a label to read it in full where images sit close together. |
 
 ## How it works
@@ -35,7 +34,7 @@ The bundle (`dist/a11y-torch.min.js`) is a **pure library**: it registers `windo
 
 All UI lives in **one Shadow-DOM host**, so the tool's own chrome is invisible to the tool's own lenses. A **lens registry** is the extensibility seam: each feature is a self-contained descriptor, and adding the next one is "write the module, register it in `index.js`" — no panel, lifecycle, or isolation changes per feature. Exclusivity is handled by **groups**: the full-screen preview is `fullscreen` (solo — it suspends everything); the host-page inspection lenses are `inspect` (they compose with each other and yield to the preview). The floating **control panel** is the single control surface for every lens.
 
-Two execution contexts, kept separate by design: **viewport features** (orientation, reflow) operate on the preview iframe and live in `responsive-preview.js`; **inspection features** operate on the host page and each get their own module — image accessible names (#5) and focus location (#3) ship in `image-names.js` and `focus-overlay.js`, with landmarks (#4) to follow.
+Two execution contexts, kept separate by design: **viewport features** (orientation, reflow) operate on the preview iframe and live in `responsive-preview.js`; **inspection features** operate on the host page and each get their own module — focus location (#3), landmarks (#4), and image accessible names (#5) ship in `focus-overlay.js`, `landmarks.js`, and `image-names.js`.
 
 ## Project structure
 
@@ -50,9 +49,10 @@ a11y-torch/
 │   └── features/
 │       ├── responsive-preview.js     # viewport lens: responsive sizes + orientation + reflow
 │       ├── focus-overlay.js          # inspection lens: focus location overlay (#3)
+│       ├── landmarks.js              # inspection lens: landmark highlighter (#4)
 │       └── image-names.js            # inspection lens: image accessible names (#5)
 ├── loader/
-│   ├── prod.js                        # toggle-if-loaded, else inject pinned jsDelivr bundle
+│   ├── prod.js                        # toggle-if-loaded, else inject pinned bundle
 │   └── dev.js                         # always tears down + re-fetches fresh (cache-busted)
 ├── scripts/
 │   ├── dev-server.mjs                 # local dev server (esbuild serve + watch) on :5174
